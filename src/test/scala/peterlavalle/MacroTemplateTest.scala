@@ -4,7 +4,7 @@ class MacroTemplateTest extends munit.FunSuite {
 
 	test("so now what") {
 
-		class Donk extends MacroTemplate {
+		class Donk extends ResourceTemplate.Macro {
 			def bar() = template
 
 			def foo = 8
