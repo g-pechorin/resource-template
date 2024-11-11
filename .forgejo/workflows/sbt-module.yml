@@ -1,0 +1,44 @@
+name: build this sbt module
+on:
+  push:
+    branches:
+      - "*"
+jobs:
+  build:
+    container:
+      image: node:16
+    runs-on: sam1
+    steps:
+      - name: setup sbt et al
+        run: |
+          echo "deb https://repo.scala-sbt.org/scalasbt/debian all main" | tee /etc/apt/sources.list.d/sbt.list
+          echo "deb https://repo.scala-sbt.org/scalasbt/debian /" | tee /etc/apt/sources.list.d/sbt_old.list
+          curl -sL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x2EE0EA64E40A89B84B2DF73499E82A75642AC823" | apt-key add
+          apt-get update
+          apt-get install sbt
+          apt install -y openjdk-11-jdk sbt
+          apt clean
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: setup GitHub remote
+        env:
+          PUSH_PUBLIC: ${{ secrets.PUSH_PUBLIC }}
+        run: |
+          git remote add push_public "${PUSH_PUBLIC}"
+          git remote -v
+          git fetch --unshallow
+      - name: build
+        run: |
+          sbt compile
+      - name: test
+        run: |
+          sbt test
+      - name: push dry
+        run: |
+          CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+          git push --force --dry-run push_public HEAD:$CURRENT_BRANCH
+      - name: push hot
+        if: ${{ github.ref_name == 'default' }}
+        run: |
+          CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+          git push --force push_public HEAD:$CURRENT_BRANCH
