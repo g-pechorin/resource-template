@@ -7,7 +7,7 @@ jobs:
   build:
     container:
       image: node:16
-    runs-on: sam1
+    runs-on: pi3agent
     steps:
       - name: setup sbt et al
         run: |
@@ -20,7 +20,7 @@ jobs:
           apt clean
       - name: checkout
         uses: actions/checkout@v2
-      - name: setup GitHub remote
+      - name: Set up GitHub remote with PAT
         env:
           PUSH_PUBLIC: ${{ secrets.PUSH_PUBLIC }}
         run: |
